@@ -50,7 +50,8 @@ int cameraZoom = 0;
 Model_3DS model_house;
 Model_3DS model_tree;
 Model_3DS model_shark;
-//Model_3DS model_fish01;
+Model_3DS model_fish01;
+Model_3DS model_fish02;
 //Model_3DS model_seahorse;
 
 // Textures
@@ -217,10 +218,22 @@ void myDisplay(void)
 	//glPopMatrix();
 
 	// draw fish model
-	//glPushMatrix();
-	//glTranslatef(0,1,1);
-	//model_fish01.Draw();
-	//glPopMatrix();
+	glPushMatrix();
+	glTranslatef(0,1,1);
+	glScalef(0.004, 0.004, 0.004);
+	//glRotatef(90, 90, 0, 1);
+	model_fish01.Draw();
+	glPopMatrix();
+
+	//// draw fish model
+	glPushMatrix();
+	glTranslatef(0, 2, 1);
+	glScalef(0.004, 0.004, 0.004);
+
+	////glRotatef(90, 90, 0, 1);
+	model_fish02.Draw();
+	glPopMatrix();
+
 
 
 	//sky box
@@ -379,8 +392,11 @@ void LoadAssets()
 	model_house.Load("Models/house/house.3DS");
 	model_tree.Load("Models/tree/Tree1.3ds");
 	model_shark.Load("Models/shark/SHARK.3ds");
-	//model_fish01.Load("Models/fish/TropicalFish01.3ds");
-	//model_fish01.Load("Models/fish/TropicalFish01.bmp");
+	model_fish01.Load("Models/fish/fishs/TropicalFish15.3ds");
+	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
+
+	//model_fish02.Load("Models/fish/fish2/TropicalFish15.3ds");
+
 
 	//model_seahorse.Load("Models/seahorse/seahorse.3ds");
 	// Loading texture files
