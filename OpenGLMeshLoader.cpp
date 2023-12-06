@@ -52,6 +52,10 @@ Model_3DS model_tree;
 Model_3DS model_shark;
 Model_3DS model_fish01;
 Model_3DS model_fish02;
+Model_3DS model_beachBall;
+
+
+//Model_3DS model_rock;
 //Model_3DS model_seahorse;
 
 // Textures
@@ -205,17 +209,20 @@ void myDisplay(void)
 	//shark
 	// Draw Tree Model
 	glPushMatrix();
-	glTranslatef(12 + sharkX, 2 + sharkY, 0 + sharkZ);
+	glTranslatef(12 + sharkX, 2 + sharkY, 0 + sharkZ); 
 	glRotatef(sharkRotationAngle, 0, 1, 0);
-	glScalef(0.7, 0.7, 0.7);
+	glScalef(0.9, 0.9, 0.9);
 	model_shark.Draw();
 	glPopMatrix();
 
 	//// Draw house Model
-	//glPushMatrix();
-	//glRotatef(90.f, 1, 0, 0);
-	//model_house.Draw();
-	//glPopMatrix();
+	glPushMatrix();
+	glTranslatef(0, 1, 4);
+	glScalef(0.05, 0.05, 0.05);
+
+	//glrotatef(90.f, 1, 0, 0);
+	model_beachBall.Draw();
+	glPopMatrix();
 
 	// draw fish model
 	glPushMatrix();
@@ -227,13 +234,20 @@ void myDisplay(void)
 
 	//// draw fish model
 	glPushMatrix();
-	glTranslatef(0, 2, 1);
+	glTranslatef(0, 2, 6);
 	glScalef(0.004, 0.004, 0.004);
 
-	////glRotatef(90, 90, 0, 1);
+	glRotatef(90, 90, 0, 1);
 	model_fish02.Draw();
 	glPopMatrix();
 
+
+	////drawsun
+	//glPushMatrix();
+	//glTranslatef(0, 2, 12);
+	//glColor3f(1, 0.5, 0);
+	//glutSolidSphere(1.0, 50, 50);
+	//glPopMatrix();
 
 
 	//sky box
@@ -394,6 +408,9 @@ void LoadAssets()
 	model_shark.Load("Models/shark/SHARK.3ds");
 	model_fish01.Load("Models/fish/fishs/TropicalFish15.3ds");
 	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
+	model_beachBall.Load("Models/BeachBall/BeachBall.3ds");
+
+	//model_rock.Load("Models/rock/rock1_3DS/rock.3ds");
 
 	//model_fish02.Load("Models/fish/fish2/TropicalFish15.3ds");
 
