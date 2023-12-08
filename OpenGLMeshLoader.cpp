@@ -599,7 +599,7 @@ void LoadAssets()
 	model_fish01.Load("Models/fish/fishs/TropicalFish15.3ds");
 	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
 	model_coral.Load("Models/coral/coral.3ds");
-	model_crab.Load("Models/crab/crab.3ds");
+	//model_crab.Load("Models/crab/crab.3ds");
 	//model_crab.Load("Models/urchin/urchin.3ds");
 
 
