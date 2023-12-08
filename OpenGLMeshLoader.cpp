@@ -2,6 +2,9 @@
 #include "Model_3DS.h"
 #include "GLTexture.h"
 #include <glut.h>
+#include <ctime>
+#include <string>
+#include <sstream>
 
 int WIDTH = 1280;
 int HEIGHT = 720;
@@ -88,6 +91,54 @@ void InitLightSource()
 	// Finally, define light source 0 position in World Space
 	GLfloat light_position[] = { 0.0f, 10.0f, 0.0f, 1.0f };
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+}
+
+void drawText(const std::string& text, GLfloat x, GLfloat y, void* font) {
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(0, WIDTH, 0, HEIGHT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	// Set the text color to black
+	glColor3f(0.0, 0.0, 0.0);
+
+	// Set the position to display the text
+	glRasterPos2f(x, y);
+
+	// Loop through each character in the string and display it
+	for (char ch : text) {
+		glutBitmapCharacter(font, ch);
+	}
+
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void displayText() {
+	// Get the current time
+	time_t currentTime = time(0);
+	tm* localTime = localtime(&currentTime);
+
+	// Convert time to a string
+	std::stringstream timeString;
+	timeString << "Time: " << localTime->tm_hour << ":" << localTime->tm_min << ":" << localTime->tm_sec;
+
+	// Convert score to a string (replace with your actual score variable)
+	int score = 100; // Replace with your actual score
+	std::stringstream scoreString;
+	scoreString << "Score: " << score;
+
+	// Display time and score using larger and bold font
+	drawText(timeString.str(), 10, 10, GLUT_BITMAP_TIMES_ROMAN_24); // Adjust the position as needed
+	drawText(scoreString.str(), 10, 40, GLUT_BITMAP_TIMES_ROMAN_24); // Adjust the position as needed
 }
 
 //=======================================================================
@@ -207,36 +258,70 @@ void myDisplay(void)
 	glPopMatrix();
 
 	//shark
-	// Draw Tree Model
 	glPushMatrix();
-	glTranslatef(12 + sharkX, 2 + sharkY, 0 + sharkZ); 
+	glTranslatef(12 + sharkX, 2 + sharkY, 0 + sharkZ);
 	glRotatef(sharkRotationAngle, 0, 1, 0);
 	glScalef(0.9, 0.9, 0.9);
 	model_shark.Draw();
 	glPopMatrix();
 
 	//// Draw house Model
-	glPushMatrix();
-	glTranslatef(0, 1, 4);
-	glScalef(0.05, 0.05, 0.05);
-
+	//glPushMatrix();
+	//glTranslatef(0, 1, 4);
+	//glScalef(0.05, 0.05, 0.05);
 	//glrotatef(90.f, 1, 0, 0);
-	model_beachBall.Draw();
-	glPopMatrix();
+	//model_beachBall.Draw();
+	//glPopMatrix();
 
-	// draw fish model
+	// draw fish models
 	glPushMatrix();
-	glTranslatef(0,1,1);
+	glTranslatef(0, 2, -5);
 	glScalef(0.004, 0.004, 0.004);
-	//glRotatef(90, 90, 0, 1);
 	model_fish01.Draw();
 	glPopMatrix();
 
-	//// draw fish model
 	glPushMatrix();
-	glTranslatef(0, 2, 6);
+	glTranslatef(-6, 2, -2);
 	glScalef(0.004, 0.004, 0.004);
+	model_fish01.Draw();
+	glPopMatrix();
 
+	glPushMatrix();
+	glTranslatef(9, 2, 7);
+	glScalef(0.004, 0.004, 0.004);
+	model_fish01.Draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(15, 2, 15);
+	glScalef(0.004, 0.004, 0.004);
+	model_fish01.Draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-5, 2, 6);
+	glScalef(0.004, 0.004, 0.004);
+	glRotatef(90, 90, 0, 1);
+	model_fish02.Draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-9, 2, -6);
+	glScalef(0.004, 0.004, 0.004);
+	glRotatef(90, 90, 0, 1);
+	model_fish02.Draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(15, 2, -10);
+	glScalef(0.004, 0.004, 0.004);
+	glRotatef(90, 90, 0, 1);
+	model_fish02.Draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-6, 2, 15);
+	glScalef(0.004, 0.004, 0.004);
 	glRotatef(90, 90, 0, 1);
 	model_fish02.Draw();
 	glPopMatrix();
@@ -266,7 +351,8 @@ void myDisplay(void)
 
 	glPopMatrix();
 
-
+	// Display text
+	displayText();
 
 	glutSwapBuffers();
 }
@@ -276,8 +362,10 @@ void myDisplay(void)
 //=======================================================================
 void myKeyboard(unsigned char button, int x, int y)
 {
+	float d = 0.01;
 	switch (button)
 	{
+
 	case 'w':
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		break;
