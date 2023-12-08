@@ -55,7 +55,13 @@ Model_3DS model_tree;
 Model_3DS model_shark;
 Model_3DS model_fish01;
 Model_3DS model_fish02;
-Model_3DS model_beachBall;
+Model_3DS model_crab;
+Model_3DS model_coral;
+Model_3DS model_urchin;
+
+
+
+
 
 
 //Model_3DS model_rock;
@@ -63,6 +69,10 @@ Model_3DS model_beachBall;
 
 // Textures
 GLTexture tex_ground;
+GLTexture tex_ball;
+
+
+
 
 //=======================================================================
 // Lighting Configuration Function
@@ -120,6 +130,23 @@ void drawText(const std::string& text, GLfloat x, GLfloat y, void* font) {
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
 	glMatrixMode(GL_MODELVIEW);
+}
+
+// drawTexturedSphere function to draw a textured sphere
+void drawTexturedSphere() {
+	glPushMatrix();
+	glScalef(0.25, 0.25, 0.25);
+	glColor3f(1.0, 1.0, 1.0);  // Set the color to white
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	glBindTexture(GL_TEXTURE_2D, tex_ball.texture[0]);
+
+	GLUquadricObj* qobj;
+	qobj = gluNewQuadric();
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 5, 50, 50);  // Adjust the radius and other parameters as needed
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
 }
 
 void displayText() {
@@ -265,6 +292,12 @@ void myDisplay(void)
 	model_shark.Draw();
 	glPopMatrix();
 
+	// Draw Textured Sphere
+	glPushMatrix();
+	glTranslatef(0,2,-0.5);
+
+	drawTexturedSphere();
+	glPopMatrix();
 	//// Draw house Model
 	//glPushMatrix();
 	//glTranslatef(0, 1, 4);
@@ -324,6 +357,22 @@ void myDisplay(void)
 	glScalef(0.004, 0.004, 0.004);
 	glRotatef(90, 90, 0, 1);
 	model_fish02.Draw();
+	glPopMatrix();
+
+	//coral
+	glPushMatrix();
+	glTranslatef(-6, 5, 15);
+	//glScalef(0.004, 0.004, 0.004);
+	glRotatef(90, 90, 0, 1);
+	model_coral.Draw();
+	glPopMatrix();
+
+	//draw crab
+	glPushMatrix();
+	glTranslatef(-6,1, 15);
+	glScalef(5,5,5);
+	//glRotatef(90, 90, 0, 1);
+	//model_urchin.Draw();
 	glPopMatrix();
 
 
@@ -496,7 +545,11 @@ void LoadAssets()
 	model_shark.Load("Models/shark/SHARK.3ds");
 	model_fish01.Load("Models/fish/fishs/TropicalFish15.3ds");
 	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
-	model_beachBall.Load("Models/BeachBall/BeachBall.3ds");
+	model_coral.Load("Models/coral/coral.3ds");
+	model_crab.Load("Models/crab/crab.3ds");
+	//model_crab.Load("Models/urchin/urchin.3ds");
+
+
 
 	//model_rock.Load("Models/rock/rock1_3DS/rock.3ds");
 
@@ -505,6 +558,8 @@ void LoadAssets()
 
 	//model_seahorse.Load("Models/seahorse/seahorse.3ds");
 	// Loading texture files
+	tex_ball.Load("Textures/ball.bmp");
+
 	tex_ground.Load("Textures/sand.bmp");
 	loadBMP(&tex, "Textures/sea.bmp", true);
 }

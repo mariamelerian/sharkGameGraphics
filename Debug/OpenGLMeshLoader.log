@@ -1,1 +1,6 @@
-﻿  OpenGLMeshLoader.vcxproj -> C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\Debug\OpenGLMeshLoader19.exe
+﻿  OpenGLMeshLoader.cpp
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\TextureBuilder.h(27,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\TextureBuilder.h(28,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\OpenGLMeshLoader.cpp(155,18): warning C4996: 'localtime': This function or variable may be unsafe. Consider using localtime_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+GLTexture.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
+  OpenGLMeshLoader.vcxproj -> C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\Debug\OpenGLMeshLoader19.exe
