@@ -64,12 +64,17 @@ Model_3DS model_urchin;
 
 
 
+
 //Model_3DS model_rock;
 //Model_3DS model_seahorse;
 
 // Textures
 GLTexture tex_ground;
 GLTexture tex_ball;
+GLTexture tex_coraltex;
+GLTexture tex_coraltexx;
+
+
 
 
 
@@ -139,6 +144,40 @@ void drawTexturedSphere() {
 	glColor3f(1.0, 1.0, 1.0);  // Set the color to white
 	//glBindTexture(GL_TEXTURE_2D, tex);
 	glBindTexture(GL_TEXTURE_2D, tex_ball.texture[0]);
+
+	GLUquadricObj* qobj;
+	qobj = gluNewQuadric();
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 5, 50, 50);  // Adjust the radius and other parameters as needed
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
+}
+
+// drawTexturedSphere function to draw a textured sphere
+void drawTexturedSphereCoral() {
+	glPushMatrix();
+	glScalef(0.25, 0.25, 0.25);
+	glColor3f(1.0, 1.0, 1.0);  // Set the color to white
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	glBindTexture(GL_TEXTURE_2D, tex_coraltex.texture[0]);
+
+	GLUquadricObj* qobj;
+	qobj = gluNewQuadric();
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 5, 50, 50);  // Adjust the radius and other parameters as needed
+	gluDeleteQuadric(qobj);
+	glPopMatrix();
+}
+
+// drawTexturedSphere function to draw a textured sphere
+void drawTexturedSphereCoral2() {
+	glPushMatrix();
+	glScalef(0.25, 0.25, 0.25);
+	glColor3f(1.0, 1.0, 1.0);  // Set the color to white
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	glBindTexture(GL_TEXTURE_2D, tex_coraltexx.texture[0]);
 
 	GLUquadricObj* qobj;
 	qobj = gluNewQuadric();
@@ -298,6 +337,20 @@ void myDisplay(void)
 
 	drawTexturedSphere();
 	glPopMatrix();
+
+	// Draw Textured coral sphere yellow
+	glPushMatrix();
+	glTranslatef(-7, 0, -0.5);
+
+	drawTexturedSphereCoral();
+	glPopMatrix();
+
+	// Draw Textured coral sphere green
+	glPushMatrix();
+	glTranslatef(-9, 0, -0.5);
+	glScalef(1.2, 1.2, 1.2);
+	drawTexturedSphereCoral2();
+	glPopMatrix();
 	//// Draw house Model
 	//glPushMatrix();
 	//glTranslatef(0, 1, 4);
@@ -369,8 +422,8 @@ void myDisplay(void)
 
 	//draw crab
 	glPushMatrix();
-	glTranslatef(-6,1, 15);
-	glScalef(5,5,5);
+	glTranslatef(0,0,0);
+	glScalef(100,100,100);
 	//glRotatef(90, 90, 0, 1);
 	//model_urchin.Draw();
 	glPopMatrix();
@@ -559,6 +612,12 @@ void LoadAssets()
 	//model_seahorse.Load("Models/seahorse/seahorse.3ds");
 	// Loading texture files
 	tex_ball.Load("Textures/ball.bmp");
+	tex_coraltex.Load("Textures/coraltex.bmp");
+	tex_coraltexx.Load("Textures/coraltexx.bmp");
+
+
+
+
 
 	tex_ground.Load("Textures/sand.bmp");
 	loadBMP(&tex, "Textures/sea.bmp", true);
