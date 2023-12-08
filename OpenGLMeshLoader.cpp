@@ -361,11 +361,9 @@ void myDisplay(void)
 
 	//crab
 	glPushMatrix();
-	glTranslatef(7, 1, 3);
+	glTranslatef(10, 1, 4);
 	glRotatef(180.f, 1, 1, 0);
 	glRotatef(100.f, 1, 0, 0);
-
-
 	glScalef(0.7, 0.5, 0.5);
 	model_crab.Draw();
 	glPopMatrix();
@@ -610,11 +608,9 @@ void LoadAssets()
 	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
 	model_coral.Load("Models/coral/coral.3ds");
 	model_crab.Load("Models/crab/crab.3ds");
-	//model_crab.Load("Models/urchin/urchin.3ds");
 
 
 
-	//model_rock.Load("Models/rock/rock1_3DS/rock.3ds");
 
 	//model_fish02.Load("Models/fish/fish2/TropicalFish15.3ds");
 
