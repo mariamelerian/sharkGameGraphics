@@ -22,6 +22,12 @@ GLdouble aspectRatio = (GLdouble)WIDTH / (GLdouble)HEIGHT;
 GLdouble zNear = 0.3;
 GLdouble zFar = 100;
 
+// Countdown timer variables
+float countdownDuration = 90.0; // 1.5 minutes
+float countdownTimer = countdownDuration;
+
+bool levelOneWon = false;
+
 
 //shark movement
 float sharkX = 0;
@@ -290,13 +296,13 @@ void drawTexturedSphereCoral2() {
 
 void displayText() {
 	// Get the current time
-	time_t currentTime = time(0);
-	tm* localTime = localtime(&currentTime);
+	 // Get the remaining minutes and seconds from the countdown timer
+	int minutes = static_cast<int>(countdownTimer) / 60;
+	int seconds = static_cast<int>(countdownTimer) % 60;
 
 	// Convert time to a string
 	std::stringstream timeString;
-	timeString << "Time: " << localTime->tm_hour << ":" << localTime->tm_min << ":" << localTime->tm_sec;
-
+	timeString << "Time: " << minutes << ":" << (seconds < 10 ? "0" : "") << seconds;
 	// Convert score to a string (replace with your actual score variable)
 	int score = 100; // Replace with your actual score
 	std::stringstream scoreString;
@@ -306,6 +312,26 @@ void displayText() {
 	drawText(timeString.str(), 10, 10, GLUT_BITMAP_TIMES_ROMAN_24); // Adjust the position as needed
 	drawText(scoreString.str(), 10, 40, GLUT_BITMAP_TIMES_ROMAN_24); // Adjust the position as needed
 }
+
+void update(int value)
+{
+	// Update the countdown timer
+	countdownTimer -= 1.0;
+
+	// Check if the timer has reached zero
+	if (countdownTimer <= 0.0)
+	{
+		// Perform actions when the timer reaches zero (game over, reset, etc.)
+		countdownTimer = countdownDuration; // Reset the timer
+	}
+
+	// Schedule the next update after 1000 milliseconds (1 second)
+	glutTimerFunc(1000, update, 0);
+
+	// Request a redraw
+	glutPostRedisplay();
+}
+
 
 //=======================================================================
 // Material Configuration Function
@@ -413,6 +439,7 @@ void setupCamera() {
 
 }
 
+
 void myDisplay(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -440,7 +467,7 @@ void myDisplay(void)
 	glPushMatrix();
 	glTranslatef(12 + sharkX, 2 + sharkY, 0 + sharkZ);
 	glRotatef(sharkRotationAngle, 0, 1, 0);
-	glScalef(0.9, 0.9, 0.9);
+	//glScalef(0.9, 0.9, 0.9);
 	model_shark.Draw();
 	glPopMatrix();
 
@@ -485,7 +512,7 @@ void myDisplay(void)
 	glTranslatef(10, 1, 4);
 	glRotatef(180.f, 1, 1, 0);
 	glRotatef(100.f, 1, 0, 0);
-	glScalef(0.7, 0.5, 0.5);
+	glScalef(0.5, 0.3, 0.3);
 	model_crab.Draw();
 	glPopMatrix();
 	// draw fish models
@@ -642,7 +669,7 @@ void myKeyboard(unsigned char button, int x, int y)
 		break;
 
 	case 'W':
-		if (sharkX >= -15) {
+		if (sharkX >= -23) {
 			sharkX = sharkX - 1;
 			sharkRotationAngle = 180;
 		}
@@ -657,13 +684,13 @@ void myKeyboard(unsigned char button, int x, int y)
 
 		break;
 	case 'S':
-		if (sharkX <= 9) {
+		if (sharkX <= 7) {
 			sharkX = sharkX + 1;
 			sharkRotationAngle = 0;
 		}
 		break;
 	case 'D':
-		if (sharkZ >= -4) {
+		if (sharkZ >= -12) {
 			sharkZ = sharkZ - 1;
 			sharkRotationAngle = 90;
 		}
@@ -827,6 +854,8 @@ void main(int argc, char** argv)
 	glutInitWindowPosition(100, 150);
 
 	glutCreateWindow(title);
+	// Start the timer function
+	glutTimerFunc(1000, update, 0);
 
 	glutDisplayFunc(myDisplay);
 	//glutKeyboardFunc(Keyboard);
