@@ -5,6 +5,10 @@
 #include <ctime>
 #include <string>
 #include <sstream>
+#include <cmath>
+#include <math.h>
+
+#define DEG2RAD(a) (a * 0.0174532925)
 
 int WIDTH = 1280;
 int HEIGHT = 720;
@@ -15,7 +19,7 @@ char title[] = "3D Model Loader Sample";
 // 3D Projection Options
 GLdouble fovy = 45.0;
 GLdouble aspectRatio = (GLdouble)WIDTH / (GLdouble)HEIGHT;
-GLdouble zNear = 0.1;
+GLdouble zNear = 0.3;
 GLdouble zFar = 100;
 
 
@@ -24,6 +28,13 @@ float sharkX = 0;
 float sharkY = 0;
 float sharkZ = 0;
 float sharkRotationAngle = 0.0;
+
+// Add these global variables to store the last mouse position
+int lastX = 0;
+int lastY = 0;
+
+// Add this global variable to control the camera rotation sensitivity
+float rotationSpeed = 0.2;
 
 class Vector
 {
@@ -57,8 +68,97 @@ Model_3DS model_fish01;
 Model_3DS model_fish02;
 Model_3DS model_crab;
 Model_3DS model_coral;
-Model_3DS model_urchin;
+Model_3DS model_human;
 
+
+class Vector3f {
+public:
+	float x, y, z;
+
+
+	Vector3f(float _x = 0.0f, float _y = 0.0f, float _z = 0.0f) {
+		x = _x;
+		y = _y;
+		z = _z;
+	}
+
+	Vector3f operator+(Vector3f& v) {
+		return Vector3f(x + v.x, y + v.y, z + v.z);
+	}
+
+	Vector3f operator-(Vector3f& v) {
+		return Vector3f(x - v.x, y - v.y, z - v.z);
+	}
+
+	Vector3f operator*(float n) {
+		return Vector3f(x * n, y * n, z * n);
+	}
+
+	Vector3f operator/(float n) {
+		return Vector3f(x / n, y / n, z / n);
+	}
+
+	Vector3f unit() {
+		return *this / sqrt(x * x + y * y + z * z);
+	}
+
+	Vector3f cross(Vector3f v) {
+		return Vector3f(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x);
+	}
+};
+
+class Camera {
+public:
+	Vector3f eye, center, up;
+	Camera(float eyeX = 20.0f, float eyeY = 10.0f, float eyeZ = 20.0f, float centerX = 4.0f, float centerY = 2.6f, float centerZ = 0.0f, float upX = 0.0f, float upY = 1.5f, float upZ = 0.0f) {
+		eye = Vector3f(eyeX, eyeY, eyeZ);
+		center = Vector3f(centerX, centerY, centerZ);
+		up = Vector3f(upX, upY, upZ);
+	}
+
+	void moveX(float d) {
+		Vector3f right = up.cross(center - eye).unit();
+		eye = eye + right * d;
+		center = center + right * d;
+	}
+
+	void moveY(float d) {
+		eye = eye + up.unit() * d;
+		center = center + up.unit() * d;
+	}
+
+	void moveZ(float d) {
+		Vector3f view = (center - eye).unit();
+		eye = eye + view * d;
+		center = center + view * d;
+	}
+
+	void rotateX(float a) {
+		Vector3f view = (center - eye).unit();
+		Vector3f right = up.cross(view).unit();
+		view = view * cos(DEG2RAD(a)) + up * sin(DEG2RAD(a));
+		up = view.cross(right);
+		center = eye + view;
+	}
+
+	void rotateY(float a) {
+		Vector3f view = (center - eye).unit();
+		Vector3f right = up.cross(view).unit();
+		view = view * cos(DEG2RAD(a)) + right * sin(DEG2RAD(a));
+		right = view.cross(up);
+		center = eye + view;
+	}
+
+	void look() {
+		gluLookAt(
+			eye.x, eye.y, eye.z,
+			center.x, center.y, center.z,
+			up.x, up.y, up.z
+		);
+	}
+};
+
+Camera camera;
 
 
 
@@ -301,6 +401,18 @@ void RenderGround()
 //=======================================================================
 // Display Function
 //=======================================================================
+
+void setupCamera() {
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(60, 640 / 480, 0.001, 100);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	camera.look();
+
+}
+
 void myDisplay(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -311,6 +423,7 @@ void myDisplay(void)
 	GLfloat lightPosition[] = { 0.0f, 100.0f, 0.0f, 0.0f };
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);
+	setupCamera();
 
 	// Draw Ground
 	RenderGround();
@@ -331,6 +444,8 @@ void myDisplay(void)
 	model_shark.Draw();
 	glPopMatrix();
 
+
+
 	// Draw Textured Sphere
 	glPushMatrix();
 	glTranslatef(0,2,-0.5);
@@ -341,7 +456,13 @@ void myDisplay(void)
 	// Draw Textured coral sphere yellow
 	glPushMatrix();
 	glTranslatef(-7, 0, -0.5);
+	glScalef(0.5, 0.5, 0.5);
+	//model_human.Draw();
+	glPopMatrix();
 
+	// Draw Textured coral sphere yellow
+	glPushMatrix();
+	glTranslatef(-7, 0, -0.5);
 	drawTexturedSphereCoral();
 	glPopMatrix();
 
@@ -472,11 +593,45 @@ void myDisplay(void)
 //=======================================================================
 void myKeyboard(unsigned char button, int x, int y)
 {
-	float d = 0.01;
+	float d = 0.1;
 	switch (button)
 	{
-
 	case 'w':
+		camera.moveY(d);
+		break;
+	case 's':
+		camera.moveY(-d);
+		break;
+	case 'a':
+		camera.moveX(d);
+		break;
+	case 'd':
+		camera.moveX(-d);
+		break;
+	case 'q':
+		camera.moveZ(d);
+		break;
+	case 'e':
+		camera.moveZ(-d);
+		break;
+
+	case 'f':
+
+		// Adjust the camera to a front view
+		camera = Camera(20, 10, 20, 4, 2.6f, 0, 0, 1.5, 0);
+		break;
+	case 't':
+		// Adjust the camera to a top view
+		camera = Camera(0.5f, 2.8f, 1.3f, 0.5f, 0.5f, 0.45f, 0.0f, 1.4f, 0.5f);
+		break;
+	case 'g':
+		// Adjust the camera to a side view
+		camera = Camera(2.8f, 0.9f, 0.8f, 0.3f, 0.7f, 0.8f, 0.0f, 1.0f, 0.0f);
+		break;
+
+
+
+	case 'x':
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		break;
 	case 'r':
@@ -526,6 +681,28 @@ void myKeyboard(unsigned char button, int x, int y)
 	glutPostRedisplay();
 }
 
+void Special(int key, int x, int y) {
+	float a = 1.0;
+
+	switch (key) {
+	case GLUT_KEY_UP:
+		camera.rotateX(a);
+		break;
+	case GLUT_KEY_DOWN:
+		camera.rotateX(-a);
+		break;
+	case GLUT_KEY_LEFT:
+		camera.rotateY(a);
+		break;
+	case GLUT_KEY_RIGHT:
+		camera.rotateY(-a);
+		break;
+	}
+
+	glutPostRedisplay();
+}
+
+
 //=======================================================================
 // Motion Function
 //=======================================================================
@@ -533,27 +710,19 @@ void myMotion(int x, int y)
 {
 	y = HEIGHT - y;
 
-	if (cameraZoom - y > 0)
-	{
-		Eye.x += -0.1;
-		Eye.z += -0.1;
-	}
-	else
-	{
-		Eye.x += 0.1;
-		Eye.z += 0.1;
-	}
+	// Calculate the change in mouse position
+	int deltaX = x - lastX;
+	int deltaY = y - lastY;
 
-	cameraZoom = y;
+	// Update the last mouse position
+	lastX = x;
+	lastY = y;
 
-	glLoadIdentity();	//Clear Model_View Matrix
+	// Adjust the camera orientation based on mouse movement
+	camera.rotateY(deltaX * rotationSpeed);
+	camera.rotateX(deltaY * rotationSpeed);
 
-	gluLookAt(Eye.x, Eye.y, Eye.z, At.x, At.y, At.z, Up.x, Up.y, Up.z);	//Setup Camera with modified paramters
-
-	GLfloat light_position[] = { 0.0f, 10.0f, 0.0f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-
-	glutPostRedisplay();	//Re-draw scene 
+	glutPostRedisplay();  // Re-draw scene
 }
 
 //=======================================================================
@@ -561,13 +730,26 @@ void myMotion(int x, int y)
 //=======================================================================
 void myMouse(int button, int state, int x, int y)
 {
-	y = HEIGHT - y;
+	// Store the last mouse position when a button is pressed
+	lastX = x;
+	lastY = y;
 
 	if (state == GLUT_DOWN)
 	{
 		cameraZoom = y;
 	}
+	else if (state == GLUT_UP)
+	{
+		int deltaY = y - cameraZoom;
+		cameraZoom = y;  // Update the stored zoom position
+
+		// Adjust the camera position based on deltaY (you can adjust the multiplier)
+		camera.moveZ(-deltaY * 0.05);  // Move along the negative z-axis with a smaller amount
+	}
 }
+
+
+
 
 //=======================================================================
 // Reshape Function
@@ -608,6 +790,8 @@ void LoadAssets()
 	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
 	model_coral.Load("Models/coral/coral.3ds");
 	model_crab.Load("Models/crab/crab.3ds");
+	model_human.Load("Models/human/human.3ds");
+
 
 
 
@@ -645,6 +829,9 @@ void main(int argc, char** argv)
 	glutCreateWindow(title);
 
 	glutDisplayFunc(myDisplay);
+	//glutKeyboardFunc(Keyboard);
+	glutSpecialFunc(Special);
+
 
 	glutKeyboardFunc(myKeyboard);
 
