@@ -98,7 +98,7 @@ Model_3DS model_shark;
 Model_3DS model_fish01;
 Model_3DS model_fish02;
 Model_3DS model_crab;
-Model_3DS model_coral;
+
 Model_3DS model_human;
 Model_3DS model_baby;
 Model_3DS model_man;
@@ -833,13 +833,20 @@ void myDisplay(void)
 
 
 		glPushMatrix();
-		glTranslatef(5, 0, 12);
+		glTranslatef(-10, 0, -7);
+		glScalef(0.05, 0.05, 0.05);
+		model_man2.Draw();
+		glPopMatrix();
+
+
+		glPushMatrix();
+		glTranslatef(-5, 0, 12);
 		glScalef(0.05, 0.05, 0.05);
 		model_man3.Draw();
 		glPopMatrix();
 
 		glPushMatrix();
-		glTranslatef(9, 0, 1);
+		glTranslatef(14, 0, 7);
 
 		glScalef(0.05, 0.05, 0.05);
 		model_man4.Draw();
@@ -847,14 +854,14 @@ void myDisplay(void)
 
 
 		glPushMatrix();
-		glTranslatef(7,0,2);
+		glTranslatef(-15,0,15);
 		glScalef(0.05, 0.05, 0.05);
 		model_man5.Draw();
 		glPopMatrix();
 
 
 		glPushMatrix();
-		glTranslatef(19, 0, 13);
+		glTranslatef(19, 0, 1);
 		glScalef(0.05, 0.05, 0.05);
 		model_man6.Draw();
 		glPopMatrix();
@@ -863,7 +870,7 @@ void myDisplay(void)
 
 
 		glPushMatrix();
-		glTranslatef(15, 5, 7);
+		glTranslatef(20, 5, 17);
 		//glColor3f(1, 0, 0);
 		glScalef(0.04, 0.04, 0.04);
 		model_baby.Draw();
@@ -1112,7 +1119,7 @@ void LoadAssets()
 	model_shark.Load("Models/shark/SHARK.3ds");
 	model_fish01.Load("Models/fish/fishs/TropicalFish15.3ds");
 	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
-	model_coral.Load("Models/coral/coral.3ds");
+	
 	model_crab.Load("Models/crab/crab.3ds");
 	model_baby.Load("Models/Baby/baby.3ds");
 	model_man.Load("Models/man/FinalTPose.3ds");
