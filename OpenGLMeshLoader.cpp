@@ -28,6 +28,9 @@ GLdouble zFar = 100;
 float countdownDuration = 90.0; // 1.5 minutes
 float countdownTimer = countdownDuration;
 
+bool gameOverWon = false;
+
+
 bool levelOneWon = false;
 bool levelOne = true;
 bool levelOneLost = false;
@@ -218,6 +221,11 @@ GLTexture tex_ground;
 GLTexture tex_ball;
 GLTexture tex_coraltex;
 GLTexture tex_coraltexx;
+GLTexture tex_sky;
+GLTexture tex_sea;
+
+
+
 
 
 
@@ -889,9 +897,43 @@ void drawBeachBalls() {
 	}
 }
 
+
+bool BabyCollisions(float sharkX, float sharkZ, float babyX, float babyZ) {
+	// Set a threshold for collision detection
+	float collisionThreshold = 3.0;
+
+	// Check if the distance between shark and crab is less than the threshold
+	float distance = sqrt(pow(sharkX - babyX, 2) + pow(sharkZ - babyZ, 2));
+
+	if (distance < collisionThreshold) {
+		return true; // Collision detected
+	}
+
+	return false; // No collision
+}
+
+void UpdateBaby() {
+	// Check for collisions with the shark
+	if (BabyCollisions(sharkX, sharkZ, 18, 15)) {
+		// If collision detected, increase the score by 50
+		if (!gameOverWon && !gameOver){
+			ScoreLevelOne += 50;
+		}
+		
+		gameOverWon = true;
+		// Make the crab disappear
+		// Assuming model_crab is an instance of a class that handles the crab model
+		//model_crab.SetPosition(-1000, -1000, -1000);
+	}
+}
+
 void drawBaby() {
+	// Check for collisions and update score
+	UpdateBaby();
+
 	glPushMatrix();
-	glTranslatef(19, 2, 16);
+	
+	glTranslatef(18, 3, 15);
 	//glColor3f(1, 0, 0);
 	glScalef(0.03, 0.03, 0.03);
 	model_baby.Draw();
@@ -932,6 +974,9 @@ void resetHealthBar() {
 
 		// Reset the health bar to 100
 		playerHealth = maxHealth;
+		sharkX = 0;
+		sharkY = 2;
+		sharkZ = 0;
 	}
 	justStartedLevelTwo = false;
 
@@ -954,13 +999,6 @@ void myDisplay(void)
 
 	
 
-	// Draw Tree Model
-	glPushMatrix();
-	glTranslatef(10, 2, 0);
-	glScalef(1, 1, 1);
-	//model_fish.Draw();
-	//model_seahorse.Draw();
-	glPopMatrix();
 
 	//shark
 	glPushMatrix();
@@ -974,6 +1012,28 @@ void myDisplay(void)
 	//sun
 	glPushMatrix();
 	drawSun();
+	glPopMatrix();
+
+	// sky box
+	glPushMatrix();
+	GLUquadricObj* qobj;
+	qobj = gluNewQuadric();
+	glTranslated(50, 0, 0);
+	glRotated(90, 1, 0, 1);
+
+	// Change the texture based on the levelTwo flag
+	if (levelTwo) {
+		glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]); // Assuming you have tex_sky loaded in LoadAssets
+	}
+	else {
+		glBindTexture(GL_TEXTURE_2D, tex_sea.texture[0]); // Default sea texture
+	}
+
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 100, 100, 100);
+	gluDeleteQuadric(qobj);
+
 	glPopMatrix();
 
 
@@ -995,7 +1055,8 @@ void myDisplay(void)
 	}else{
 
 	if (levelTwo) {
-	
+		glBindTexture(GL_TEXTURE_2D, tex_sky.texture[0]); // Assuming you have tex_sky loaded in LoadAssets
+
 		resetHealthBar();
 
 		drawBeachBalls();
@@ -1005,7 +1066,7 @@ void myDisplay(void)
 		UpdateHumans();
 
 		drawBaby();
-
+		UpdateBaby();
 
 		
 	}
@@ -1025,18 +1086,18 @@ void myDisplay(void)
 	//glPopMatrix();
 
 
-	//sky box
-	glPushMatrix();
+	////sky box
+	//glPushMatrix();
 
-	GLUquadricObj* qobj;
-	qobj = gluNewQuadric();
-	glTranslated(50, 0, 0);
-	glRotated(90, 1, 0, 1);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	gluQuadricTexture(qobj, true);
-	gluQuadricNormals(qobj, GL_SMOOTH);
-	gluSphere(qobj, 100, 100, 100);
-	gluDeleteQuadric(qobj);
+	//GLUquadricObj* qobj;
+	//qobj = gluNewQuadric();
+	//glTranslated(50, 0, 0);
+	//glRotated(90, 1, 0, 1);
+	//glBindTexture(GL_TEXTURE_2D, tex);
+	//gluQuadricTexture(qobj, true);
+	//gluQuadricNormals(qobj, GL_SMOOTH);
+	//gluSphere(qobj, 100, 100, 100);
+	//gluDeleteQuadric(qobj);
 
 
 	glPopMatrix();
@@ -1054,7 +1115,7 @@ void myDisplay(void)
 void myKeyboard(unsigned char button, int x, int y)
 {
 
-	if (gameOver) {
+	if (gameOver|| gameOverWon) {
 		return;
 	}
 	float d = 0.1;
@@ -1278,9 +1339,11 @@ void LoadAssets()
 
 
 	tex_ground.Load("Textures/sand.bmp");
+	tex_sky.Load("Textures/sky.bmp");
+	tex_sea.Load("Textures/sea.bmp");
+	
 	loadBMP(&tex, "Textures/sea.bmp", true);
 }
-
 //=======================================================================
 // Main Function
 //=======================================================================
