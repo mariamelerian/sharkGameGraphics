@@ -35,6 +35,7 @@ bool levelOneLost = false;
 bool levelTwo = false;
 bool levelTwoWon = false;
 bool levelTwoLost = false;
+bool justStartedLevelTwo = true;
 
 float ScoreLevelOne = 0;
 float ScoreLevelTwo = 0;
@@ -722,6 +723,181 @@ void drawCrab() {
 	glPopMatrix();
 }
 
+
+//humans
+
+struct Human {
+	float posX, posY, posZ;
+	float scale;
+	int modelType; // Assuming you have multiple human models
+};
+
+Human humans[] = {
+	{5, 0, 10, 0.04, 0},   // Human 1
+	{0, 0, 0, 0.04, 0},    // Human 2
+	{14, 0, 7, 0.04, 2},   // Human 3
+	{-7, 0, -7, 0.04, 2},  // Human 4
+	{-5, 0, 12, 0.04, 3},  // Human 5
+	{0, 0, -15, 0.04, 4},  // Human 6
+	{-15, 0, 15, 0.04, 5}, // Human 7
+	{15, 0, -15, 0.04, 5}, // Human 8
+	{19, 0, 1, 0.04, 6}    // Human 9
+};
+
+bool HumanCollisions(float sharkX, float sharkZ, float humanX, float humanZ) {
+	// Set a threshold for collision detection
+	float collisionThreshold = 3.0;
+
+	// Check if the distance between shark and human is less than the threshold
+	float distance = sqrt(pow(sharkX - humanX, 2) + pow(sharkZ - humanZ, 2));
+
+	if (distance < collisionThreshold) {
+		return true; // Collision detected
+	}
+
+	return false; // No collision
+}
+
+void UpdateHumans() {
+	// Loop through each human and check for collisions with the shark
+	for (int i = 0; i < sizeof(humans) / sizeof(humans[0]); i++) {
+		if (HumanCollisions(sharkX, sharkZ, humans[i].posX, humans[i].posZ)) {
+			// If collision detected, make the human disappear
+			humans[i].posX = -1000; // Move human to a location outside the visible area
+			humans[i].posZ = -1000;
+			// Increase the score by 10
+			ScoreLevelOne += 10;
+			sharkScaleFactor = sharkScaleFactor + 0.15;
+			// Perform any other actions on collision (increase score, change shark scale, etc.)
+		}
+	}
+}
+
+void drawHumans() {
+	// Loop through each human and draw them
+	for (int i = 0; i < sizeof(humans) / sizeof(humans[0]); i++) {
+		// Skip drawing if the human has disappeared
+		if (humans[i].posX == -1000 && humans[i].posZ == -1000) {
+			continue;
+		}
+
+		glPushMatrix();
+		glTranslatef(humans[i].posX, humans[i].posY, humans[i].posZ);
+		glScalef(humans[i].scale, humans[i].scale, humans[i].scale);
+
+		// Draw the human model based on modelType
+		switch (humans[i].modelType) {
+		case 0:
+			// Assuming you have multiple human models
+			model_man.Draw();
+			break;
+
+		case 2:
+			// Assuming you have multiple human models
+			model_man2.Draw();
+			break;
+		case 3:
+			// Assuming you have multiple human models
+			model_man3.Draw();
+			break;
+
+		case 4:
+			// Assuming you have multiple human models
+			model_man4.Draw();
+			break;
+		case 5:
+			// Assuming you have multiple human models
+			model_man5.Draw();
+			break;
+		case 6:
+			// Assuming you have multiple human models
+			model_man6.Draw();
+			break;
+
+
+		default:
+			model_man.Draw(); // Default human model
+			break;
+		}
+
+		glPopMatrix();
+	}
+}
+
+//BEACH BALLS beachball beachBall BeachBall
+
+struct BeachBall {
+	float posX, posY, posZ;
+	float scale;
+};
+
+BeachBall beachBalls[] = {
+	{0, 2, -5, 1.0},
+	{-4, 2, 6, 1.0},
+	{-10, 2, 0, 1.0},
+	{-15, 2, -15, 1.0},
+	{12, 2, 15, 1.0},
+	{-9, 2, 12, 1.0},
+	{13, 2, -9, 1.0}
+};
+
+bool BeachBallCollisions(float sharkX, float sharkZ, float ballX, float ballZ) {
+	// Set a threshold for collision detection
+	float collisionThreshold = 2.0;
+
+	// Check if the distance between shark and beach ball is less than the threshold
+	float distance = sqrt(pow(sharkX - ballX, 2) + pow(sharkZ - ballZ, 2));
+
+	if (distance < collisionThreshold) {
+		return true; // Collision detected
+	}
+
+	return false; // No collision
+}
+
+void UpdateBeachBalls() {
+	// Loop through each beach ball and check for collisions with the shark
+	for (int i = 0; i < sizeof(beachBalls) / sizeof(beachBalls[0]); i++) {
+		if (BeachBallCollisions(sharkX, sharkZ, beachBalls[i].posX, beachBalls[i].posZ)) {
+			// If collision detected, decrease the player's health by 10
+			playerHealth -= 20;
+			if (playerHealth <= 0) {
+				gameOver = true;
+			}
+			// Make the beach ball disappear
+			beachBalls[i].posX = -1000; // Move ball to a location outside the visible area
+			beachBalls[i].posZ = -1000;
+		}
+	}
+}
+
+void drawBeachBalls() {
+	// Loop through each beach ball and draw them
+	for (int i = 0; i < sizeof(beachBalls) / sizeof(beachBalls[0]); i++) {
+		// Skip drawing if the beach ball has disappeared
+		if (beachBalls[i].posX == -1000 && beachBalls[i].posZ == -1000) {
+			continue;
+		}
+
+		glPushMatrix();
+		glTranslatef(beachBalls[i].posX, beachBalls[i].posY, beachBalls[i].posZ);
+		glScalef(beachBalls[i].scale, beachBalls[i].scale, beachBalls[i].scale);
+
+		drawTexturedSphere(); // Draw the textured sphere for beach ball
+
+		glPopMatrix();
+	}
+}
+
+void drawBaby() {
+	glPushMatrix();
+	glTranslatef(19, 2, 16);
+	//glColor3f(1, 0, 0);
+	glScalef(0.03, 0.03, 0.03);
+	model_baby.Draw();
+	glPopMatrix();
+}
+
 void drawHealthBar()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -750,6 +926,17 @@ void drawHealthBar()
 	glMatrixMode(GL_MODELVIEW);
 
 }
+
+void resetHealthBar() {
+	if (justStartedLevelTwo) {
+
+		// Reset the health bar to 100
+		playerHealth = maxHealth;
+	}
+	justStartedLevelTwo = false;
+
+}
+
 void myDisplay(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -795,11 +982,9 @@ void myDisplay(void)
 		drawCorals();
 		UpdateCorals();
 
-
 		// draw and update fish
 		drawFish();
 		UpdateFish();
-
 
 		//draw scaling and descaling crab
 		drawCrab();
@@ -810,71 +995,19 @@ void myDisplay(void)
 	}else{
 
 	if (levelTwo) {
-		// Draw Textured BEAHBACLL Sphere
-		glPushMatrix();
-		glTranslatef(0, 2, -0.5);
-		drawTexturedSphere();
-		glPopMatrix();
+	
+		resetHealthBar();
+
+		drawBeachBalls();
+		UpdateBeachBalls();
+
+		drawHumans();
+		UpdateHumans();
+
+		drawBaby();
 
 
 		
-
-		glPushMatrix();
-		glScalef(0.05, 0.05, 0.05);
-		model_man.Draw();
-		glPopMatrix();
-
-
-		glPushMatrix();
-		glTranslatef(2, 0, 7);
-		glScalef(0.05, 0.05, 0.05);
-		model_man2.Draw();
-		glPopMatrix();
-
-
-		glPushMatrix();
-		glTranslatef(-10, 0, -7);
-		glScalef(0.05, 0.05, 0.05);
-		model_man2.Draw();
-		glPopMatrix();
-
-
-		glPushMatrix();
-		glTranslatef(-5, 0, 12);
-		glScalef(0.05, 0.05, 0.05);
-		model_man3.Draw();
-		glPopMatrix();
-
-		glPushMatrix();
-		glTranslatef(14, 0, 7);
-
-		glScalef(0.05, 0.05, 0.05);
-		model_man4.Draw();
-		glPopMatrix();
-
-
-		glPushMatrix();
-		glTranslatef(-15,0,15);
-		glScalef(0.05, 0.05, 0.05);
-		model_man5.Draw();
-		glPopMatrix();
-
-
-		glPushMatrix();
-		glTranslatef(19, 0, 1);
-		glScalef(0.05, 0.05, 0.05);
-		model_man6.Draw();
-		glPopMatrix();
-
-
-
-
-		glPushMatrix();
-		glTranslatef(20, 5, 17);
-		//glColor3f(1, 0, 0);
-		glScalef(0.04, 0.04, 0.04);
-		model_baby.Draw();
-		glPopMatrix();
 	}
 	}
 
@@ -1130,19 +1263,11 @@ void LoadAssets()
 	model_man6.Load("Models/man6/FinalTPose.3ds");
 
 
-	//model_baby.Load("Models/ChibiChick/ChibiChick.3ds");
+	
 
 
 
 
-
-
-
-
-	//model_fish02.Load("Models/fish/fish2/TropicalFish15.3ds");
-
-
-	//model_seahorse.Load("Models/seahorse/seahorse.3ds");
 	// Loading texture files
 	tex_ball.Load("Textures/ball.bmp");
 	tex_coraltex.Load("Textures/coraltex.bmp");
