@@ -25,7 +25,7 @@ GLdouble zNear = 0.3;
 GLdouble zFar = 100;
 
 // Countdown timer variables
-float countdownDuration = 5.0; // 1.5 minutes
+float countdownDuration = 90.0; // 1.5 minutes
 float countdownTimer = countdownDuration;
 
 bool levelOneWon = false;
@@ -675,7 +675,7 @@ void drawCorals() {
 
 bool CrabCollisions(float sharkX, float sharkZ, float crabX, float crabZ) {
 	// Set a threshold for collision detection
-	float collisionThreshold = 2.0;
+	float collisionThreshold = 3.0;
 
 	// Check if the distance between shark and crab is less than the threshold
 	float distance = sqrt(pow(sharkX - crabX, 2) + pow(sharkZ - crabZ, 2));
