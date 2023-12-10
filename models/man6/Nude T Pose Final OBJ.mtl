@@ -1,0 +1,53 @@
+newmtl eyebrow001MeshSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd eyebrow001.png
+Ni 1.00
+newmtl eyelashes01MeshSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd eyelashes01.png
+Ni 1.00
+newmtl highFBXASC045polyMeshSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd brown_eye.png
+Ni 1.00
+newmtl male_muscle_13290MeshSG9
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd middleage_lightskinned_male_diffuse.png
+Ni 1.00
+newmtl short04MeshSG1
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd short04_diffuse.png
+Ni 1.00
+newmtl teeth_baseMeshSG8
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd teeth.png
+Ni 1.00
+Ks 0.85 0.85 0.85
+Ns 18.00
+newmtl tongue01MeshSG8
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.20 0.20 0.20
+Tf 1.00 1.00 1.00
+map_Kd tongue01_diffuse.png
+Ni 1.00
+Ks 0.03 0.03 0.03
+Ns 18.00

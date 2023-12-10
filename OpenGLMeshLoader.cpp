@@ -25,7 +25,7 @@ GLdouble zNear = 0.3;
 GLdouble zFar = 100;
 
 // Countdown timer variables
-float countdownDuration = 90.0; // 1.5 minutes
+float countdownDuration = 5.0; // 1.5 minutes
 float countdownTimer = countdownDuration;
 
 bool levelOneWon = false;
@@ -39,12 +39,17 @@ bool levelTwoLost = false;
 float ScoreLevelOne = 0;
 float ScoreLevelTwo = 0;
 
+float playerHealth = 100.0;  // Assuming initial health is 100
+float maxHealth = 100.0;     // Maximum health value
+bool gameOver = false;
+
 
 //shark movement
 float sharkX = 0;
 float sharkY = 0;
 float sharkZ = 0;
 float sharkRotationAngle = 0.0;
+float sharkScaleFactor = 1.65;
 
 // Add these global variables to store the sun position
 float sunRadius = 1.0;
@@ -95,6 +100,19 @@ Model_3DS model_fish02;
 Model_3DS model_crab;
 Model_3DS model_coral;
 Model_3DS model_human;
+Model_3DS model_baby;
+Model_3DS model_man;
+Model_3DS model_man2;
+Model_3DS model_man3;
+Model_3DS model_man4;
+Model_3DS model_man5;
+Model_3DS model_man6;
+
+
+
+
+//Model_3DS model_ChibiChick;
+
 
 
 class Vector3f {
@@ -389,10 +407,9 @@ void update(int value)
 	// Check if the timer has reached zero
 	if (countdownTimer <= 0.0)
 	{
-		// Perform actions when the timer reaches zero (game over, reset, etc.)
-		countdownTimer = countdownDuration; // Reset the timer
+		countdownTimer = 0.0; // Ensure timer doesn't go negative
+		gameOver = true;
 	}
-
 	// Schedule the next update after 1000 milliseconds (1 second)
 	glutTimerFunc(1000, update, 0);
 
@@ -550,6 +567,7 @@ void UpdateFish() {
 			fishes[i].posZ = -1000;
 			// Increase the score by 10
 			ScoreLevelOne += 10;
+			sharkScaleFactor = sharkScaleFactor + 0.15;
 		}
 	}
 }
@@ -619,9 +637,11 @@ void UpdateCorals() {
 	// Loop through each coral and check for collisions with the shark
 	for (int i = 0; i < sizeof(corals) / sizeof(corals[0]); i++) {
 		if (CoralCollisions(sharkX, sharkZ, corals[i].posX, corals[i].posZ)) {
-			// If collision detected, decrease the score by 10
-			ScoreLevelOne -= 10;
-
+			// If collision detected, decrease the player's health by 20
+			playerHealth -= 20;
+			if (playerHealth <= 0) {
+				gameOver = true;
+			}
 			// Make the coral disappear
 			corals[i].posX = -1000; // Move coral to a location outside the visible area
 			corals[i].posZ = -1000;
@@ -673,6 +693,8 @@ void UpdateCrab() {
 		// If collision detected, increase the score by 50
 		ScoreLevelOne += 50;
 		levelTwo = true;
+		levelOne = false;
+		levelOneWon = true;
 		// Make the crab disappear
 		// Assuming model_crab is an instance of a class that handles the crab model
 		//model_crab.SetPosition(-1000, -1000, -1000);
@@ -688,7 +710,7 @@ void drawCrab() {
 	glTranslatef(18, 1, 15);
 
 	// Use a sine function to make the crab grow and shrink periodically
-	float scaleFactor = 1.0 + 0.1 * sin(glutGet(GLUT_ELAPSED_TIME) * 0.001); // Adjust the frequency with the multiplier
+	float scaleFactor = 1.3 + 0.2 * sin(glutGet(GLUT_ELAPSED_TIME) * 0.001); // Adjust the frequency with the multiplier
 	glScalef(scaleFactor, scaleFactor, scaleFactor);
 
 	// Rotate and scale the crab
@@ -698,6 +720,35 @@ void drawCrab() {
 
 	model_crab.Draw();
 	glPopMatrix();
+}
+
+void drawHealthBar()
+{
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	gluOrtho2D(0, WIDTH, 0, HEIGHT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glColor3f(0.0, 1.0, 0.0);
+	glBegin(GL_QUADS);
+	float healthBarWidth = (playerHealth / maxHealth) * 190.0;
+	glVertex2f(WIDTH - 195, 25);
+	glVertex2f(WIDTH - 195 + healthBarWidth, 25);
+	glVertex2f(WIDTH - 195 + healthBarWidth, 45);
+	glVertex2f(WIDTH - 195, 45);
+	glEnd();
+
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+	glMatrixMode(GL_MODELVIEW);
+
 }
 void myDisplay(void)
 {
@@ -714,6 +765,8 @@ void myDisplay(void)
 	// Draw Ground
 	RenderGround();
 
+	
+
 	// Draw Tree Model
 	glPushMatrix();
 	glTranslatef(10, 2, 0);
@@ -727,7 +780,7 @@ void myDisplay(void)
 	//glTranslatef(12 + sharkX, 3 + sharkY, 0 + sharkZ);
 	glTranslatef( sharkX, 2 + sharkY, 0 + sharkZ);
 	glRotatef(sharkRotationAngle, 0, 1, 0);
-	glScalef(1.65, 1.65, 1.65);
+	glScalef(sharkScaleFactor, sharkScaleFactor, sharkScaleFactor);
 	model_shark.Draw();
 	glPopMatrix();
 
@@ -736,31 +789,94 @@ void myDisplay(void)
 	drawSun();
 	glPopMatrix();
 
+
+	if (levelOne) {
+		//draw and update corals
+		drawCorals();
+		UpdateCorals();
+
+
+		// draw and update fish
+		drawFish();
+		UpdateFish();
+
+
+		//draw scaling and descaling crab
+		drawCrab();
+
+
+
+
+	}else{
+
 	if (levelTwo) {
-		// Draw Textured Sphere
+		// Draw Textured BEAHBACLL Sphere
 		glPushMatrix();
 		glTranslatef(0, 2, -0.5);
 		drawTexturedSphere();
 		glPopMatrix();
+
+
+		
+
+		glPushMatrix();
+		glScalef(0.05, 0.05, 0.05);
+		model_man.Draw();
+		glPopMatrix();
+
+
+		glPushMatrix();
+		glTranslatef(2, 0, 7);
+		glScalef(0.05, 0.05, 0.05);
+		model_man2.Draw();
+		glPopMatrix();
+
+
+		glPushMatrix();
+		glTranslatef(5, 0, 12);
+		glScalef(0.05, 0.05, 0.05);
+		model_man3.Draw();
+		glPopMatrix();
+
+		glPushMatrix();
+		glTranslatef(9, 0, 1);
+
+		glScalef(0.05, 0.05, 0.05);
+		model_man4.Draw();
+		glPopMatrix();
+
+
+		glPushMatrix();
+		glTranslatef(7,0,2);
+		glScalef(0.05, 0.05, 0.05);
+		model_man5.Draw();
+		glPopMatrix();
+
+
+		glPushMatrix();
+		glTranslatef(19, 0, 13);
+		glScalef(0.05, 0.05, 0.05);
+		model_man6.Draw();
+		glPopMatrix();
+
+
+
+
+		glPushMatrix();
+		glTranslatef(15, 5, 7);
+		//glColor3f(1, 0, 0);
+		glScalef(0.04, 0.04, 0.04);
+		model_baby.Draw();
+		glPopMatrix();
+	}
 	}
 
-	//draw and update corals
-	drawCorals();
-	UpdateCorals();
 
-
-	// draw and update fish
-	drawFish();
-	UpdateFish();
+	if (gameOver)
+	{
+		drawText("Game Over! You Lost!", WIDTH / 2 - 150, HEIGHT / 2, GLUT_BITMAP_TIMES_ROMAN_24);
+	}
 	
-	
-	//draw scaling and descaling crab
-	drawCrab();
-
-
-	
-
-
 	////drawsun
 	//glPushMatrix();
 	//glTranslatef(0, 2, 12);
@@ -784,6 +900,7 @@ void myDisplay(void)
 
 
 	glPopMatrix();
+	drawHealthBar();
 
 	// Display text
 	displayText();
@@ -796,6 +913,10 @@ void myDisplay(void)
 //=======================================================================
 void myKeyboard(unsigned char button, int x, int y)
 {
+
+	if (gameOver) {
+		return;
+	}
 	float d = 0.1;
 	switch (button)
 	{
@@ -993,7 +1114,19 @@ void LoadAssets()
 	model_fish02.Load("Models/fish/fish2/TropicalFish02.3ds");
 	model_coral.Load("Models/coral/coral.3ds");
 	model_crab.Load("Models/crab/crab.3ds");
-	model_human.Load("Models/human/human.3ds");
+	model_baby.Load("Models/Baby/baby.3ds");
+	model_man.Load("Models/man/FinalTPose.3ds");
+	model_man2.Load("Models/man2/FinalTPose.3ds");
+	model_man3.Load("Models/man3/FinalTPose.3ds");
+	model_man4.Load("Models/man4/FinalTPose.3ds");
+	model_man5.Load("Models/man5/FinalTPose.3ds");
+	model_man6.Load("Models/man6/FinalTPose.3ds");
+
+
+	//model_baby.Load("Models/ChibiChick/ChibiChick.3ds");
+
+
+
 
 
 
