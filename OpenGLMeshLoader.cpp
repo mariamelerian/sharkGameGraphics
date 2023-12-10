@@ -9,6 +9,8 @@
 #include <math.h>
 
 #define DEG2RAD(a) (a * 0.0174532925)
+#define _USE_MATH_DEFINES
+#define M_PI 3.14159265358979323846
 
 int WIDTH = 1280;
 int HEIGHT = 720;
@@ -27,6 +29,15 @@ float countdownDuration = 90.0; // 1.5 minutes
 float countdownTimer = countdownDuration;
 
 bool levelOneWon = false;
+bool levelOne = true;
+bool levelOneLost = false;
+
+bool levelTwo = false;
+bool levelTwoWon = false;
+bool levelTwoLost = false;
+
+float ScoreLevelOne = 0;
+float ScoreLevelTwo = 0;
 
 
 //shark movement
@@ -35,9 +46,18 @@ float sharkY = 0;
 float sharkZ = 0;
 float sharkRotationAngle = 0.0;
 
+// Add these global variables to store the sun position
+float sunRadius = 1.0;
+float sunRotationAngle = 0.0;
+float colorChangeSpeed = 0.01; // Adjust the speed of color change
+
+
+
 // Add these global variables to store the last mouse position
 int lastX = 0;
 int lastY = 0;
+
+
 
 // Add this global variable to control the camera rotation sensitivity
 float rotationSpeed = 0.2;
@@ -214,6 +234,54 @@ void InitLightSource()
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 }
 
+
+
+void drawSun() {
+	// Save the current color state
+	GLfloat currentColor[4];
+	glGetFloatv(GL_CURRENT_COLOR, currentColor);
+
+	// Update the rotation angle based on time
+	sunRotationAngle += 0.01;
+
+	// Use the current time to generate dynamic shades of yellow to orange
+	float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+
+	// Use the current time to generate dynamic colors
+	float red = 1.0 + 1.0 * sin(currentTime);
+	float green = 1.0 + 1.0 * sin(currentTime + 2.0);
+	float blue = 0.2 + 0.2 * sin(currentTime + 4.0);
+
+	glColor3f(red, green, blue);
+
+	// Use sine function for brightness (yellow to orange)
+	float brightness = 0.8 + 0.2 * sin(currentTime);
+
+	// Use cosine function for hue variation (yellow to orange)
+	float hue = 0.1 * cos(currentTime);
+
+	// Calculate sun position in a circular path
+	float sunX = 20.0 * cos(sunRotationAngle);
+	float sunZ = 20.0 * sin(sunRotationAngle);
+
+	// Draw the rotating and color-changing sphere
+	glPushMatrix();
+	glTranslatef(sunX, 2, sunZ); // Set the sun's position
+	glRotatef(sunRotationAngle, 0, 1, 0);
+
+	// Set the sun color
+	glColor3f(red, green, blue);
+	glutSolidSphere(sunRadius, 50, 50);
+
+	glPopMatrix();
+
+	// Restore the previous color state
+	glColor4fv(currentColor);
+}
+
+
+
+
 void drawText(const std::string& text, GLfloat x, GLfloat y, void* font) {
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
@@ -304,7 +372,7 @@ void displayText() {
 	std::stringstream timeString;
 	timeString << "Time: " << minutes << ":" << (seconds < 10 ? "0" : "") << seconds;
 	// Convert score to a string (replace with your actual score variable)
-	int score = 100; // Replace with your actual score
+	float score = ScoreLevelOne; // Replace with your actual score
 	std::stringstream scoreString;
 	scoreString << "Score: " << score;
 
@@ -366,22 +434,22 @@ void myInit(void)
 	glLoadIdentity();
 
 	gluPerspective(fovy, aspectRatio, zNear, zFar);
-	//*******************************//
+	//*****//
 	// fovy:			Angle between the bottom and top of the projectors, in degrees.			 //
 	// aspectRatio:		Ratio of width to height of the clipping plane.							 //
 	// zNear and zFar:	Specify the front and back clipping planes distances from camera.		 //
-	//*******************************//
+	//*****//
 
 	glMatrixMode(GL_MODELVIEW);
 
 	glLoadIdentity();
 
 	gluLookAt(Eye.x, Eye.y, Eye.z, At.x, At.y, At.z, Up.x, Up.y, Up.z);
-	//*******************************//
+	//*****//
 	// EYE (ex, ey, ez): defines the location of the camera.									 //
 	// AT (ax, ay, az):	 denotes the direction where the camera is aiming at.					 //
 	// UP (ux, uy, uz):  denotes the upward orientation of the camera.							 //
-	//*******************************//
+	//*****//
 
 	InitLightSource();
 
@@ -439,7 +507,198 @@ void setupCamera() {
 
 }
 
+//fish
 
+struct Fish {
+	float posX, posY, posZ;
+	float scale;
+	float rotation;
+	int modelType; // 0 for model_fish01, 1 for model_fish02
+};
+
+Fish fishes[] = {
+	{0, 3, -5, 0.006, 0, 0},
+	{-6, 3, -2, 0.006, 0, 0},
+	{9, 3, 7, 0.006, 0, 0},
+	{15, 3, 15, 0.006, 0, 0},
+	{-5, 3, 6, 0.006, 90, 1},
+	{-9, 3, -6, 0.006, 90, 1},
+	{15, 3, -10, 0.006, 90, 1},
+	{-6, 3, 15, 0.006, 90, 1}
+};
+
+bool FishCollisions(float sharkX, float sharkZ, float fishX, float fishZ) {
+	// Set a threshold for collision detection
+	float collisionThreshold = 2.0;
+
+	// Check if the distance between shark and fish is less than the threshold
+	float distance = sqrt(pow(sharkX - fishX, 2) + pow(sharkZ - fishZ, 2));
+
+	if (distance < collisionThreshold) {
+		return true; // Collision detected
+	}
+
+	return false; // No collision
+}
+
+void UpdateFish() {
+	// Loop through each fish and check for collisions with the shark
+	for (int i = 0; i < sizeof(fishes) / sizeof(fishes[0]); i++) {
+		if (FishCollisions(sharkX, sharkZ, fishes[i].posX, fishes[i].posZ)) {
+			// If collision detected, make the fish disappear
+			fishes[i].posX = -1000; // Move fish to a location outside the visible area
+			fishes[i].posZ = -1000;
+			// Increase the score by 10
+			ScoreLevelOne += 10;
+		}
+	}
+}
+
+void drawFish() {
+	// Loop through each fish and draw them
+	for (int i = 0; i < sizeof(fishes) / sizeof(fishes[0]); i++) {
+		// Skip drawing if the fish has disappeared
+		if (fishes[i].posX == -1000 && fishes[i].posZ == -1000) {
+			continue;
+		}
+
+		glPushMatrix();
+		glTranslatef(fishes[i].posX, fishes[i].posY, fishes[i].posZ);
+		glScalef(fishes[i].scale, fishes[i].scale, fishes[i].scale);
+
+		if (fishes[i].modelType == 1) {
+			glRotatef(fishes[i].rotation, 90, 0, 1);
+			model_fish02.Draw();
+		}
+		else {
+			model_fish01.Draw();
+		}
+
+		glPopMatrix();
+	}
+}
+
+//corals
+
+struct Coral {
+	float posX, posY, posZ;
+	float scale;
+	int modelType; // Assuming you have multiple coral models
+};
+
+Coral corals[] = {
+	{-7, 0, -0.5, 0.5, 0},
+	{-4, 0, 12, 1.0, 1},
+	{-15, 0, -15, 1.0, 1},
+	{12, 0, 15, 1.0, 1},
+	{-9, 0, 12, 1.0, 1},
+	{-2, 0, 6, 1.0, 1},
+	{13, 0, -9, 1.0, 1},
+	{-15, 0, -14, 1.2, 2},
+	{-9, 0, 10, 1.2, 2},
+	{-2, 0, 4, 1.2, 2},
+	{12, 0, 0, 1.2, 2},
+	{14, 0, -8, 1.2, 2}
+};
+
+bool CoralCollisions(float sharkX, float sharkZ, float coralX, float coralZ) {
+	// Set a threshold for collision detection
+	float collisionThreshold = 2.2;
+
+	// Check if the distance between shark and coral is less than the threshold
+	float distance = sqrt(pow(sharkX - coralX, 2) + pow(sharkZ - coralZ, 2));
+
+	if (distance < collisionThreshold) {
+		return true; // Collision detected
+	}
+
+	return false; // No collision
+}
+
+void UpdateCorals() {
+	// Loop through each coral and check for collisions with the shark
+	for (int i = 0; i < sizeof(corals) / sizeof(corals[0]); i++) {
+		if (CoralCollisions(sharkX, sharkZ, corals[i].posX, corals[i].posZ)) {
+			// If collision detected, decrease the score by 10
+			ScoreLevelOne -= 10;
+
+			// Make the coral disappear
+			corals[i].posX = -1000; // Move coral to a location outside the visible area
+			corals[i].posZ = -1000;
+		}
+	}
+}
+void drawCorals() {
+	// Loop through each coral and draw them
+	for (int i = 0; i < sizeof(corals) / sizeof(corals[0]); i++) {
+		// Skip drawing if the coral has disappeared
+		if (corals[i].posX == -1000 && corals[i].posZ == -1000) {
+			continue;
+		}
+
+		glPushMatrix();
+		glTranslatef(corals[i].posX, corals[i].posY, corals[i].posZ);
+		glScalef(corals[i].scale, corals[i].scale, corals[i].scale);
+
+		if (corals[i].modelType == 1) {
+			// Assuming you have multiple coral models
+			drawTexturedSphereCoral();
+		}
+		else if (corals[i].modelType == 2) {
+			// Assuming you have multiple coral models
+			drawTexturedSphereCoral2();
+		}
+
+		glPopMatrix();
+	}
+}
+
+bool CrabCollisions(float sharkX, float sharkZ, float crabX, float crabZ) {
+	// Set a threshold for collision detection
+	float collisionThreshold = 2.0;
+
+	// Check if the distance between shark and crab is less than the threshold
+	float distance = sqrt(pow(sharkX - crabX, 2) + pow(sharkZ - crabZ, 2));
+
+	if (distance < collisionThreshold) {
+		return true; // Collision detected
+	}
+
+	return false; // No collision
+}
+
+void UpdateCrab() {
+	// Check for collisions with the shark
+	if (CrabCollisions(sharkX, sharkZ, 18, 15)) {
+		// If collision detected, increase the score by 50
+		ScoreLevelOne += 50;
+		levelTwo = true;
+		// Make the crab disappear
+		// Assuming model_crab is an instance of a class that handles the crab model
+		//model_crab.SetPosition(-1000, -1000, -1000);
+	}
+}
+
+void drawCrab() {
+	// Check for collisions and update score
+	UpdateCrab();
+
+	// Draw the crab
+	glPushMatrix();
+	glTranslatef(18, 1, 15);
+
+	// Use a sine function to make the crab grow and shrink periodically
+	float scaleFactor = 1.0 + 0.1 * sin(glutGet(GLUT_ELAPSED_TIME) * 0.001); // Adjust the frequency with the multiplier
+	glScalef(scaleFactor, scaleFactor, scaleFactor);
+
+	// Rotate and scale the crab
+	glRotatef(180.f, 1, 1, 0);
+	glRotatef(100.f, 1, 0, 0);
+	glScalef(0.3, 0.3, 0.3);
+
+	model_crab.Draw();
+	glPopMatrix();
+}
 void myDisplay(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -465,124 +724,41 @@ void myDisplay(void)
 
 	//shark
 	glPushMatrix();
-	glTranslatef(12 + sharkX, 2 + sharkY, 0 + sharkZ);
+	//glTranslatef(12 + sharkX, 3 + sharkY, 0 + sharkZ);
+	glTranslatef( sharkX, 2 + sharkY, 0 + sharkZ);
 	glRotatef(sharkRotationAngle, 0, 1, 0);
-	//glScalef(0.9, 0.9, 0.9);
+	glScalef(1.65, 1.65, 1.65);
 	model_shark.Draw();
 	glPopMatrix();
 
-
-
-	// Draw Textured Sphere
+	//sun
 	glPushMatrix();
-	glTranslatef(0,2,-0.5);
-
-	drawTexturedSphere();
+	drawSun();
 	glPopMatrix();
 
-	// Draw Textured coral sphere yellow
-	glPushMatrix();
-	glTranslatef(-7, 0, -0.5);
-	glScalef(0.5, 0.5, 0.5);
-	//model_human.Draw();
-	glPopMatrix();
+	if (levelTwo) {
+		// Draw Textured Sphere
+		glPushMatrix();
+		glTranslatef(0, 2, -0.5);
+		drawTexturedSphere();
+		glPopMatrix();
+	}
 
-	// Draw Textured coral sphere yellow
-	glPushMatrix();
-	glTranslatef(-7, 0, -0.5);
-	drawTexturedSphereCoral();
-	glPopMatrix();
+	//draw and update corals
+	drawCorals();
+	UpdateCorals();
 
-	// Draw Textured coral sphere green
-	glPushMatrix();
-	glTranslatef(-9, 0, -0.5);
-	glScalef(1.2, 1.2, 1.2);
-	drawTexturedSphereCoral2();
-	glPopMatrix();
-	//// Draw house Model
-	//glPushMatrix();
-	//glTranslatef(0, 1, 4);
-	//glScalef(0.05, 0.05, 0.05);
-	//glrotatef(90.f, 1, 0, 0);
-	//model_beachBall.Draw();
-	//glPopMatrix();
 
-	//crab
-	glPushMatrix();
-	glTranslatef(10, 1, 4);
-	glRotatef(180.f, 1, 1, 0);
-	glRotatef(100.f, 1, 0, 0);
-	glScalef(0.5, 0.3, 0.3);
-	model_crab.Draw();
-	glPopMatrix();
-	// draw fish models
-	glPushMatrix();
-	glTranslatef(0, 2, -5);
-	glScalef(0.004, 0.004, 0.004);
-	model_fish01.Draw();
-	glPopMatrix();
+	// draw and update fish
+	drawFish();
+	UpdateFish();
+	
+	
+	//draw scaling and descaling crab
+	drawCrab();
 
-	glPushMatrix();
-	glTranslatef(-6, 2, -2);
-	glScalef(0.004, 0.004, 0.004);
-	model_fish01.Draw();
-	glPopMatrix();
 
-	glPushMatrix();
-	glTranslatef(9, 2, 7);
-	glScalef(0.004, 0.004, 0.004);
-	model_fish01.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(15, 2, 15);
-	glScalef(0.004, 0.004, 0.004);
-	model_fish01.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-5, 2, 6);
-	glScalef(0.004, 0.004, 0.004);
-	glRotatef(90, 90, 0, 1);
-	model_fish02.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-9, 2, -6);
-	glScalef(0.004, 0.004, 0.004);
-	glRotatef(90, 90, 0, 1);
-	model_fish02.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(15, 2, -10);
-	glScalef(0.004, 0.004, 0.004);
-	glRotatef(90, 90, 0, 1);
-	model_fish02.Draw();
-	glPopMatrix();
-
-	glPushMatrix();
-	glTranslatef(-6, 2, 15);
-	glScalef(0.004, 0.004, 0.004);
-	glRotatef(90, 90, 0, 1);
-	model_fish02.Draw();
-	glPopMatrix();
-
-	//coral
-	glPushMatrix();
-	glTranslatef(-6, 5, 15);
-	//glScalef(0.004, 0.004, 0.004);
-	glRotatef(90, 90, 0, 1);
-	model_coral.Draw();
-	glPopMatrix();
-
-	//draw crab
-	glPushMatrix();
-	glTranslatef(0,0,0);
-	glScalef(100,100,100);
-	//glRotatef(90, 90, 0, 1);
-	//model_urchin.Draw();
-	glPopMatrix();
+	
 
 
 	////drawsun
@@ -684,7 +860,7 @@ void myKeyboard(unsigned char button, int x, int y)
 
 		break;
 	case 'S':
-		if (sharkX <= 7) {
+		if (sharkX <= 19) {
 			sharkX = sharkX + 1;
 			sharkRotationAngle = 0;
 		}
