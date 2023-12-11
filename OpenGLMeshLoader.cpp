@@ -7,10 +7,17 @@
 #include <sstream>
 #include <cmath>
 #include <math.h>
+#include <Windows.h>
 
 #define DEG2RAD(a) (a * 0.0174532925)
 #define _USE_MATH_DEFINES
 #define M_PI 3.14159265358979323846
+#define COLLISION_SOUND_PATH_CRUNCH "sound/crunchSound.wav"
+#define COLLISION_SOUND_PATH_OUCH "sound/ouchSound.wav"
+#define COLLISION_SOUND_PATH_SCREAM "sound/screamSound.wav"
+#define COLLISION_SOUND_PATH_DAMNYOU "sound/damnYouSound.wav"
+
+
 
 int WIDTH = 1280;
 int HEIGHT = 720;
@@ -47,6 +54,8 @@ float playerHealth = 100.0;  // Assuming initial health is 100
 float maxHealth = 100.0;     // Maximum health value
 bool gameOver = false;
 
+float babyX = 18.0;
+float babyZ = 15.0;
 
 //shark movement
 float sharkX = 0;
@@ -264,12 +273,14 @@ void InitLightSource()
 
 
 void drawSun() {
+
 	// Save the current color state
+
 	GLfloat currentColor[4];
 	glGetFloatv(GL_CURRENT_COLOR, currentColor);
 
 	// Update the rotation angle based on time
-	sunRotationAngle += 0.01;
+	sunRotationAngle += 0.03;
 
 	// Use the current time to generate dynamic shades of yellow to orange
 	float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
@@ -288,13 +299,15 @@ void drawSun() {
 	float hue = 0.1 * cos(currentTime);
 
 	// Calculate sun position in a circular path
-	float sunX = 20.0 * cos(sunRotationAngle);
-	float sunZ = 20.0 * sin(sunRotationAngle);
+	float sunZ = 20.0 * cos(sunRotationAngle);
+	float sunY = 50.0 * cos(sunRotationAngle);
+	float sunX = 20.0 * sin(sunRotationAngle);
+
 
 	// Draw the rotating and color-changing sphere
 	glPushMatrix();
 	glTranslatef(sunX, 2, sunZ); // Set the sun's position
-	glRotatef(sunRotationAngle, 0, 1, 0);
+	//glRotatef(sunRotationAngle, 0, 0, 1);
 
 	// Set the sun color
 	glColor3f(red, green, blue);
@@ -410,14 +423,16 @@ void displayText() {
 
 void update(int value)
 {
-	// Update the countdown timer
-	countdownTimer -= 1.0;
+	if (!gameOver && !gameOverWon) {
+		// Update the countdown timer
+		countdownTimer -= 1.0;
 
-	// Check if the timer has reached zero
-	if (countdownTimer <= 0.0)
-	{
-		countdownTimer = 0.0; // Ensure timer doesn't go negative
-		gameOver = true;
+		// Check if the timer has reached zero
+		if (countdownTimer <= 0.0)
+		{
+			countdownTimer = 0.0; // Ensure timer doesn't go negative
+			gameOver = true;
+		}
 	}
 	// Schedule the next update after 1000 milliseconds (1 second)
 	glutTimerFunc(1000, update, 0);
@@ -458,6 +473,9 @@ void myInit(void)
 	glMatrixMode(GL_PROJECTION);
 
 	glLoadIdentity();
+
+	glEnable(GL_LIGHTING);
+
 
 	gluPerspective(fovy, aspectRatio, zNear, zFar);
 	//*****//
@@ -535,6 +553,11 @@ void setupCamera() {
 
 //fish
 
+void PlayCollisionSoundFish() {
+	// Use SND_ASYNC to play the sound asynchronously (non-blocking)
+	PlaySound(COLLISION_SOUND_PATH_CRUNCH, NULL, SND_FILENAME | SND_ASYNC);
+}
+
 struct Fish {
 	float posX, posY, posZ;
 	float scale;
@@ -561,6 +584,7 @@ bool FishCollisions(float sharkX, float sharkZ, float fishX, float fishZ) {
 	float distance = sqrt(pow(sharkX - fishX, 2) + pow(sharkZ - fishZ, 2));
 
 	if (distance < collisionThreshold) {
+		PlayCollisionSoundFish();
 		return true; // Collision detected
 	}
 
@@ -605,7 +629,14 @@ void drawFish() {
 	}
 }
 
+
+
 //corals
+
+void PlayCollisionSoundCoral() {
+	// Use SND_ASYNC to play the sound asynchronously (non-blocking)
+	PlaySound(COLLISION_SOUND_PATH_OUCH, NULL, SND_FILENAME | SND_ASYNC);
+}
 
 struct Coral {
 	float posX, posY, posZ;
@@ -636,6 +667,8 @@ bool CoralCollisions(float sharkX, float sharkZ, float coralX, float coralZ) {
 	float distance = sqrt(pow(sharkX - coralX, 2) + pow(sharkZ - coralZ, 2));
 
 	if (distance < collisionThreshold) {
+		PlayCollisionSoundCoral();
+
 		return true; // Collision detected
 	}
 
@@ -733,7 +766,10 @@ void drawCrab() {
 
 
 //humans
-
+void PlayCollisionSoundMan() {
+	// Use SND_ASYNC to play the sound asynchronously (non-blocking)
+	PlaySound(COLLISION_SOUND_PATH_SCREAM, NULL, SND_FILENAME | SND_ASYNC);
+}
 struct Human {
 	float posX, posY, posZ;
 	float scale;
@@ -760,6 +796,7 @@ bool HumanCollisions(float sharkX, float sharkZ, float humanX, float humanZ) {
 	float distance = sqrt(pow(sharkX - humanX, 2) + pow(sharkZ - humanZ, 2));
 
 	if (distance < collisionThreshold) {
+		PlayCollisionSoundMan();
 		return true; // Collision detected
 	}
 
@@ -834,6 +871,10 @@ void drawHumans() {
 
 //BEACH BALLS beachball beachBall BeachBall
 
+void PlayCollisionSoundBall() {
+	// Use SND_ASYNC to play the sound asynchronously (non-blocking)
+	PlaySound(COLLISION_SOUND_PATH_DAMNYOU, NULL, SND_FILENAME | SND_ASYNC);
+}
 struct BeachBall {
 	float posX, posY, posZ;
 	float scale;
@@ -857,6 +898,7 @@ bool BeachBallCollisions(float sharkX, float sharkZ, float ballX, float ballZ) {
 	float distance = sqrt(pow(sharkX - ballX, 2) + pow(sharkZ - ballZ, 2));
 
 	if (distance < collisionThreshold) {
+		PlayCollisionSoundBall();
 		return true; // Collision detected
 	}
 
@@ -916,14 +958,15 @@ void UpdateBaby() {
 	// Check for collisions with the shark
 	if (BabyCollisions(sharkX, sharkZ, 18, 15)) {
 		// If collision detected, increase the score by 50
-		if (!gameOverWon && !gameOver){
+		if (!gameOverWon && !gameOver) {
 			ScoreLevelOne += 50;
 		}
-		
+
 		gameOverWon = true;
-		// Make the crab disappear
-		// Assuming model_crab is an instance of a class that handles the crab model
-		//model_crab.SetPosition(-1000, -1000, -1000);
+
+		// Teleport the baby to a new position (-1000, -1000, -1000)
+		babyX = -1000;
+		babyZ = -1000;
 	}
 }
 
@@ -932,14 +975,19 @@ void drawBaby() {
 	UpdateBaby();
 
 	glPushMatrix();
-	
-	glTranslatef(18, 3, 15);
-	//glColor3f(1, 0, 0);
+
+	glTranslatef(babyX, 3, babyZ); // Use babyX and babyZ instead of fixed values
+	// Use a sine function to make the baby grow and shrink periodically
+	float scaleFactor = 1.3 + 0.2 * sin(glutGet(GLUT_ELAPSED_TIME) * 0.001); // Adjust the frequency with the multiplier
+	glScalef(scaleFactor, scaleFactor, scaleFactor);
+
+	// Rotate and scale the baby
+	// glRotatef(180.f, 1, 1, 0);
+	// glRotatef(100.f, 1, 0, 0);
 	glScalef(0.03, 0.03, 0.03);
 	model_baby.Draw();
 	glPopMatrix();
 }
-
 void drawHealthBar()
 {
 	glMatrixMode(GL_PROJECTION);
@@ -1077,6 +1125,12 @@ void myDisplay(void)
 	{
 		drawText("Game Over! You Lost!", WIDTH / 2 - 150, HEIGHT / 2, GLUT_BITMAP_TIMES_ROMAN_24);
 	}
+
+	if (gameOverWon)
+	{
+		drawText("Congratulations! You Win!", WIDTH / 2 - 150, HEIGHT / 2, GLUT_BITMAP_TIMES_ROMAN_24);
+	}
+
 	
 	////drawsun
 	//glPushMatrix();
@@ -1086,18 +1140,6 @@ void myDisplay(void)
 	//glPopMatrix();
 
 
-	////sky box
-	//glPushMatrix();
-
-	//GLUquadricObj* qobj;
-	//qobj = gluNewQuadric();
-	//glTranslated(50, 0, 0);
-	//glRotated(90, 1, 0, 1);
-	//glBindTexture(GL_TEXTURE_2D, tex);
-	//gluQuadricTexture(qobj, true);
-	//gluQuadricNormals(qobj, GL_SMOOTH);
-	//gluSphere(qobj, 100, 100, 100);
-	//gluDeleteQuadric(qobj);
 
 
 	glPopMatrix();
