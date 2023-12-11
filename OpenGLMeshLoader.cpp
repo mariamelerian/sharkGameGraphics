@@ -223,8 +223,7 @@ public:
 
 Camera camera;
 
-
-
+Camera cameraFirstPerson = Camera(sharkX + 1 , sharkY + 3.5, sharkZ, 45.0f, 10.0f, 1.0f, 0.0f, 1.0f, 0.0f);
 
 
 
@@ -1276,9 +1275,7 @@ void myKeyboard(unsigned char button, int x, int y)
 		break;
 	case 't':
 
-		firstPerson = !firstPerson;
-		// Adjust the camera to a top view
-		camera = Camera(0.5f, 2.8f, 1.3f, 0.5f, 0.5f, 0.45f, 0.0f, 1.4f, 0.5f);
+		camera = cameraFirstPerson;
 		break;
 	case 'g':
 		// Adjust the camera to a side view
@@ -1297,12 +1294,13 @@ void myKeyboard(unsigned char button, int x, int y)
 		exit(0);
 		break;
 
-	case 'W':
+	case 'S':
 		if (sharkX >= -23) {
 			sharkX = sharkX - 1;
 			sharkRotationAngle = 180;
 		}
-		camera = Camera(sharkX, sharkY + 4.0, sharkZ, -14.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f);
+		/*camera = Camera(sharkX, sharkY + 4.0, sharkZ, -14.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f);*/
+		/* camera = cameraFirstPerson;*/
 
 		break;
 	case 'A':
@@ -1314,7 +1312,7 @@ void myKeyboard(unsigned char button, int x, int y)
 
 
 		break;
-	case 'S':
+	case 'W':
 		if (sharkX <= 19) {
 			sharkX = sharkX + 1;
 			sharkRotationAngle = 0;
