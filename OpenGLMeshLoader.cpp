@@ -31,11 +31,14 @@ GLdouble aspectRatio = (GLdouble)WIDTH / (GLdouble)HEIGHT;
 GLdouble zNear = 0.3;
 GLdouble zFar = 100;
 
+float sunX, sunY, sunZ;
+
 // Countdown timer variables
 float countdownDuration = 90.0; // 1.5 minutes
 float countdownTimer = countdownDuration;
 
 bool gameOverWon = false;
+bool FirstPerson=false;
 
 
 bool levelOneWon = false;
@@ -63,6 +66,7 @@ float sharkY = 0;
 float sharkZ = 0;
 float sharkRotationAngle = 0.0;
 float sharkScaleFactor = 1.65;
+float cameraAngle = sharkRotationAngle;
 
 // Add these global variables to store the sun position
 float sunRadius = 1.0;
@@ -79,6 +83,8 @@ int lastY = 0;
 
 // Add this global variable to control the camera rotation sensitivity
 float rotationSpeed = 0.2;
+
+bool firstPerson = false;
 
 class Vector
 {
@@ -222,6 +228,7 @@ Camera camera;
 
 
 
+
 //Model_3DS model_rock;
 //Model_3DS model_seahorse;
 
@@ -232,6 +239,8 @@ GLTexture tex_coraltex;
 GLTexture tex_coraltexx;
 GLTexture tex_sky;
 GLTexture tex_sea;
+GLTexture tex_sun;
+
 
 
 
@@ -266,60 +275,137 @@ void InitLightSource()
 	glLightfv(GL_LIGHT0, GL_SPECULAR, specular);
 
 	// Finally, define light source 0 position in World Space
-	GLfloat light_position[] = { 0.0f, 10.0f, 0.0f, 1.0f };
+	//GLfloat light_position[] = { 0.0f, 10.0f, 0.0f, 1.0f };
+	GLfloat light_position[] = { sunX,sunY,sunZ, 1.0f };
+
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 }
 
 
 
+//void drawSun() {
+//
+//	// Save the current color state
+//
+//	GLfloat currentColor[4];
+//	glGetFloatv(GL_CURRENT_COLOR, currentColor);
+//
+//	// Update the rotation angle based on time
+//	sunRotationAngle += 0.03;
+//
+//	// Use the current time to generate dynamic shades of yellow to orange
+//	float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+//
+//	// Use the current time to generate dynamic colors
+//	float red = 1.0 + 1.0 * sin(currentTime);
+//	float green = 1.0 + 1.0 * sin(currentTime + 2.0);
+//	float blue = 0.2 + 0.2 * sin(currentTime + 4.0);
+//
+//	glColor3f(red, green, blue);
+//
+//	// Use sine function for brightness (yellow to orange)
+//	float brightness = 0.8 + 0.2 * sin(currentTime);
+//
+//	// Use cosine function for hue variation (yellow to orange)
+//	float hue = 0.1 * cos(currentTime);
+//
+//	// Calculate sun position in a circular path
+//	 sunZ = 20.0 * cos(sunRotationAngle);
+//	 sunY = 50.0 * cos(sunRotationAngle);
+//	 sunX = 20.0 * sin(sunRotationAngle);
+//
+//
+//	// Draw the rotating and color-changing sphere
+//	glPushMatrix();
+//	glTranslatef(sunX, 2, sunZ); // Set the sun's position
+//	//glRotatef(sunRotationAngle, 0, 0, 1);
+//
+//	// Set the sun color
+//	glColor3f(red, green, blue);
+//	glutSolidSphere(sunRadius, 50, 50);
+//
+//	glPopMatrix();
+//
+//	// Restore the previous color state
+//	glColor4fv(currentColor);
+//}
+
+//void drawSun() {
+//	// Save the current color state
+//	GLfloat currentColor[4];
+//	glGetFloatv(GL_CURRENT_COLOR, currentColor);
+//
+//	// Update the rotation angle based on time
+//	sunRotationAngle += 0.03;
+//
+//	// Use the current time to generate dynamic shades of yellow to orange
+//	float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
+//
+//	// Set the sun color to yellow
+//	float red = 1.0;
+//	float green = 1.0;
+//	float blue = 0.0;
+//
+//	// Calculate sun position in a circular path
+//	float sunZ = 20.0 * cos(sunRotationAngle);
+//	float sunY = 50.0 * cos(sunRotationAngle);
+//	float sunX = 20.0 * sin(sunRotationAngle);
+//
+//	// Draw the rotating and color-changing sphere
+//	glPushMatrix();
+//	glTranslatef(sunX, 2, sunZ); // Set the sun's position
+//
+//	// Set the sun color to yellow
+//	glColor3f(red, green, blue);
+//	glutSolidSphere(sunRadius, 50, 50);
+//
+//	glPopMatrix();
+//
+//	// Restore the previous color state
+//	glColor4fv(currentColor);
+//}
+
+
 void drawSun() {
-
-	// Save the current color state
-
-	GLfloat currentColor[4];
-	glGetFloatv(GL_CURRENT_COLOR, currentColor);
-
+	// Assuming you have a variable to store the rotation angle (e.g., sunRotationAngle)
+	static float sunRotationAngle = 0.0;
 	// Update the rotation angle based on time
-	sunRotationAngle += 0.03;
-
-	// Use the current time to generate dynamic shades of yellow to orange
+	sunRotationAngle += 0.01;
+//
+//	// Use the current time to generate dynamic shades of yellow to orange
 	float currentTime = glutGet(GLUT_ELAPSED_TIME) / 1000.0f;
 
-	// Use the current time to generate dynamic colors
-	float red = 1.0 + 1.0 * sin(currentTime);
-	float green = 1.0 + 1.0 * sin(currentTime + 2.0);
-	float blue = 0.2 + 0.2 * sin(currentTime + 4.0);
-
-	glColor3f(red, green, blue);
-
-	// Use sine function for brightness (yellow to orange)
-	float brightness = 0.8 + 0.2 * sin(currentTime);
-
-	// Use cosine function for hue variation (yellow to orange)
-	float hue = 0.1 * cos(currentTime);
-
-	// Calculate sun position in a circular path
-	float sunZ = 20.0 * cos(sunRotationAngle);
-	float sunY = 50.0 * cos(sunRotationAngle);
-	float sunX = 20.0 * sin(sunRotationAngle);
+//
+//	// Use cosine function for hue variation (yellow to orange)
+	//float hue = 0.1 * cos(currentTime);
+//
+//	// Calculate sun position in a circular path
+	 sunZ = 20.0 * cos(sunRotationAngle);
+	 sunY = 50.0 * cos(sunRotationAngle);
+	 sunX = 20.0 * sin(sunRotationAngle);
 
 
-	// Draw the rotating and color-changing sphere
 	glPushMatrix();
-	glTranslatef(sunX, 2, sunZ); // Set the sun's position
-	//glRotatef(sunRotationAngle, 0, 0, 1);
+	glTranslatef(0,sunY,sunZ);  // Adjust the translation as needed
+	glRotatef(sunRotationAngle, 1, 0, 0);  // Rotate around the Y-axis
+	glScalef(0.25, 0.25, 0.25);
+	glColor3f(1.0, 1.0, 1.0);  // Set the color to white
+	glBindTexture(GL_TEXTURE_2D, tex_sun.texture[0]);
 
-	// Set the sun color
-	glColor3f(red, green, blue);
-	glutSolidSphere(sunRadius, 50, 50);
-
+	GLUquadricObj* qobj;
+	qobj = gluNewQuadric();
+	gluQuadricTexture(qobj, true);
+	gluQuadricNormals(qobj, GL_SMOOTH);
+	gluSphere(qobj, 5, 50, 50);  // Adjust the radius and other parameters as needed
+	gluDeleteQuadric(qobj);
 	glPopMatrix();
 
-	// Restore the previous color state
-	glColor4fv(currentColor);
+	// Update the rotation angle for the next frame
+	sunRotationAngle += 0.2;  // Adjust the rotation speed as needed
+	if (sunRotationAngle > 360.0) {
+		sunRotationAngle -= 360.0;
+	}
 }
-
-
 
 
 void drawText(const std::string& text, GLfloat x, GLfloat y, void* font) {
@@ -1042,6 +1128,7 @@ void myDisplay(void)
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightIntensity);
 	setupCamera();
 
+
 	// Draw Ground
 	RenderGround();
 
@@ -1188,6 +1275,8 @@ void myKeyboard(unsigned char button, int x, int y)
 		camera = Camera(20, 10, 20, 4, 2.6f, 0, 0, 1.5, 0);
 		break;
 	case 't':
+
+		firstPerson = !firstPerson;
 		// Adjust the camera to a top view
 		camera = Camera(0.5f, 2.8f, 1.3f, 0.5f, 0.5f, 0.45f, 0.0f, 1.4f, 0.5f);
 		break;
@@ -1213,6 +1302,8 @@ void myKeyboard(unsigned char button, int x, int y)
 			sharkX = sharkX - 1;
 			sharkRotationAngle = 180;
 		}
+		camera = Camera(sharkX, sharkY + 4.0, sharkZ, -14.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f);
+
 		break;
 	case 'A':
 
@@ -1383,6 +1474,8 @@ void LoadAssets()
 	tex_ground.Load("Textures/sand.bmp");
 	tex_sky.Load("Textures/sky.bmp");
 	tex_sea.Load("Textures/sea.bmp");
+	tex_sun.Load("Textures/sun.bmp");
+
 	
 	loadBMP(&tex, "Textures/sea.bmp", true);
 }
