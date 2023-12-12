@@ -223,7 +223,7 @@ public:
 
 Camera camera;
 
-Camera cameraFirstPerson = Camera(sharkX + 1 , sharkY + 3.5, sharkZ, 45.0f, 10.0f, 1.0f, 0.0f, 1.0f, 0.0f);
+Camera cameraFirstPerson = Camera(sharkX + 1.5 , sharkY + 3, sharkZ, 45.0f, 10.0f, 1.0f, 0.0f, 1.0f, 0.0f);
 
 
 
