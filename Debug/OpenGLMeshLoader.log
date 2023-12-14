@@ -1,5 +1,10 @@
 ﻿  OpenGLMeshLoader.cpp
 C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\TextureBuilder.h(27,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
 C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\TextureBuilder.h(28,52): warning C4244: 'argument': conversion from 'int' to 'GLfloat', possible loss of data
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\OpenGLMeshLoader.cpp(854,46): warning C4838: conversion from 'bool' to 'GLfloat' requires a narrowing conversion
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\OpenGLMeshLoader.cpp(865,46): warning C4838: conversion from 'bool' to 'GLfloat' requires a narrowing conversion
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\OpenGLMeshLoader.cpp(876,37): warning C4838: conversion from 'bool' to 'GLfloat' requires a narrowing conversion
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\OpenGLMeshLoader.cpp(1073,22): warning C4552: '!': result of expression not used
+C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\OpenGLMeshLoader.cpp(1116,22): warning C4552: '!': result of expression not used
 GLTexture.obj : warning LNK4075: ignoring '/EDITANDCONTINUE' due to '/INCREMENTAL:NO' specification
   OpenGLMeshLoader.vcxproj -> C:\Users\Mariam ELERIAN\Desktop\sharkGameGraphics\Debug\OpenGLMeshLoader19.exe
